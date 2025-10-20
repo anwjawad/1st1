@@ -3,6 +3,12 @@
 // - Snackbar / Toast notifications
 // - Skeleton loader blocks
 // - Animated buttons (auto-enhance)
+// - Inline loader & top progress bar
+// - Cards & data blocks
+// - Floating inputs & Switches
+// - Tooltips & lightweight Modal
+// - Table polish + optional expandable rows
+// - Theme transition + micro animations helpers
 // No core edits. Safe to drop-in. Theme-aware via [data-theme].
 
 (function(){
@@ -65,8 +71,6 @@
 .ui-anim-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,.10); }
 .ui-anim-btn:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
 .ui-anim-btn .mi { vertical-align: -2px; }
-
-/* Variants tied to theme */
 .ui-anim-btn.primary {
   --btn-bg: color-mix(in srgb, var(--primary, #2563eb) 10%, #fff);
   color: color-mix(in srgb, var(--primary-ink, #0b2a72), #000 12%);
@@ -78,24 +82,103 @@
   opacity:.28; transition: opacity .2s ease;
 }
 .ui-anim-btn:hover.glow::before { opacity:.5 }
-
-/* Subtle ripple (perf-safe) */
-.ui-anim-btn::after {
-  content:""; position:absolute; width:14px; height:14px; border-radius:50%;
-  background: currentColor; opacity:0; transform: scale(1);
-  top: var(--ry, 50%); left: var(--rx, 50%); translate: -50% -50%;
-}
+/* Subtle ripple */
+.ui-anim-btn::after { content:""; position:absolute; width:14px; height:14px; border-radius:50%;
+  background: currentColor; opacity:0; transform: scale(1); top: var(--ry, 50%); left: var(--rx, 50%); translate: -50% -50%; }
 .ui-anim-btn.ripple:active::after { animation: ui-ripple .5s ease; }
-@keyframes ui-ripple {
-  0% { opacity:.22; transform: scale(.8); }
-  100% { opacity:0; transform: scale(9); }
-}
-
-/* Autostyle existing .btn if wanted */
+@keyframes ui-ripple { 0% { opacity:.22; transform: scale(.8); } 100% { opacity:0; transform: scale(9); } }
+/* Autostyle existing .btn */
 .ui-autostyle-buttons .btn:not(.btn-primary):not(.btn-danger) {
   border-radius:12px; transition: transform .08s ease, box-shadow .16s ease;
 }
 .ui-autostyle-buttons .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+
+/* ===== 1) Inline Loader (spinner) ===== */
+.ui-inline-loader {
+  --size: 18px; --thick: 2px; --track: color-mix(in srgb, var(--border, #d9dee6), #fff 40%);
+  width: var(--size); height: var(--size); border-radius: 50%;
+  border: var(--thick) solid var(--track);
+  border-top-color: var(--primary, #2563eb);
+  animation: ui-spin .8s linear infinite;
+  display:inline-block; vertical-align: middle;
+}
+@keyframes ui-spin { to { transform: rotate(360deg); } }
+
+/* ===== 2) Top Progress Bar (NProgress-like) ===== */
+#ui-topbar {
+  position: fixed; left:0; top:0; height:3px; width:0%;
+  background: linear-gradient(90deg, var(--primary,#2563eb), color-mix(in srgb, var(--primary,#2563eb), #fff 40%));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--primary,#2563eb), transparent 60%);
+  z-index: 9999; transition: width .2s ease, opacity .2s ease;
+}
+
+/* ===== 3) Cards & Data Blocks ===== */
+.ui-card {
+  background: var(--card, #fff); border: 1px solid var(--border, #e3e6ea);
+  border-radius: 14px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.06);
+}
+.ui-card.hover:hover { box-shadow: 0 12px 28px rgba(0,0,0,.10); transform: translateY(-1px); transition: .16s ease; }
+
+/* ===== 4) Floating Inputs & Switches ===== */
+.ui-field { position: relative; }
+.ui-field input[type="text"], .ui-field input[type="number"], .ui-field input[type="email"], .ui-field input[type="password"], .ui-field textarea {
+  width:100%; padding: 12px 12px; border-radius: 10px; border:1px solid var(--border,#dfe3ea); background:#fff; outline: none;
+}
+.ui-field label {
+  position: absolute; left: 12px; top: 12px; padding:0 6px; background: #fff; color:#6b7280;
+  pointer-events:none; transition: .18s ease;
+}
+.ui-field:has(input:focus), .ui-field:has(textarea:focus) {}
+.ui-field input:focus, .ui-field textarea:focus { border-color: color-mix(in srgb, var(--primary,#2563eb), #000 70%); }
+.ui-field input:not(:placeholder-shown) + label,
+.ui-field textarea:not(:placeholder-shown) + label,
+.ui-field input:focus + label,
+.ui-field textarea:focus + label { transform: translateY(-16px) scale(.88); color: color-mix(in srgb, var(--primary,#2563eb), #000 60%); }
+
+/* Switch */
+.ui-switch { --w: 44px; --h: 24px; --dot: 18px;
+  position: relative; width: var(--w); height: var(--h); border-radius: 999px; background: #e5e7eb; cursor: pointer; transition: background .2s ease;
+  border:1px solid var(--border,#dcdfe6);
+}
+.ui-switch::after { content:""; position:absolute; width: var(--dot); height: var(--dot); border-radius:50%; top: 50%; left: 3px; translate: 0 -50%;
+  background:#fff; box-shadow: 0 2px 10px rgba(0,0,0,.15); transition: left .2s ease;
+}
+.ui-switch[data-on="true"] { background: color-mix(in srgb, var(--primary,#2563eb) 60%, #fff); }
+.ui-switch[data-on="true"]::after { left: calc(var(--w) - var(--dot) - 3px); }
+
+/* ===== 5) Tooltips (data-tip) ===== */
+[data-tip] { position: relative; }
+[data-tip]:hover::after, [data-tip]:focus-visible::after {
+  content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0;
+  background: #111827; color:#fff; border-radius:8px; padding:6px 8px; font-size:12px; white-space: nowrap; z-index: 50;
+  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+}
+[data-tip]:hover::before, [data-tip]:focus-visible::before {
+  content:""; position:absolute; left:50%; bottom: calc(100% + 4px); translate:-50% 0; border:6px solid transparent; border-top-color:#111827;
+}
+
+/* ===== 6) Lightweight Modal ===== */
+.ui-modal { position: fixed; inset:0; display:none; place-items: center; z-index: 9998; }
+.ui-modal.active { display:grid; }
+.ui-modal .backdrop { position:absolute; inset:0; background: rgba(8,10,18,.32); backdrop-filter: blur(6px) saturate(120%); }
+.ui-modal .panel { position:relative; background:#fff; border-radius:16px; border:1px solid var(--border,#e3e6ea); width:min(92vw,720px); max-height:80vh; overflow:auto;
+  box-shadow: 0 20px 50px rgba(0,0,0,.25); transform: translateY(10px); opacity:0; animation: ui-modal-in .18s ease forwards; }
+.ui-modal .panel .head { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--border,#e3e6ea); }
+.ui-modal .panel .body { padding:14px; }
+@keyframes ui-modal-in { to { transform: translateY(0); opacity:1; } }
+
+/* ===== 7) Tables & Lists polish ===== */
+.ui-table { width:100%; border-collapse: collapse; }
+.ui-table th, .ui-table td { border:1px solid var(--border,#e4e7ec); padding:8px 10px; }
+.ui-table thead th { background: color-mix(in srgb, #e5e7eb, #fff 20%); text-align:start; }
+.ui-table tbody tr:hover { background: color-mix(in srgb, #f3f4f6, #fff 60%); }
+.ui-row-details { display: none; }
+tr[aria-expanded="true"] + .ui-row-details { display: table-row; background: color-mix(in srgb, #f9fafb, #fff 40%); }
+
+/* ===== 8) Theme transition + micro animations ===== */
+.ui-theme-animate * { transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
+.ui-fade-in { animation: ui-fade .24s ease both; } @keyframes ui-fade { from { opacity:0 } to { opacity:1 } }
+.ui-slide-up { animation: ui-slide-up .26s ease both; } @keyframes ui-slide-up { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
     `.trim();
     const style = document.createElement('style');
     style.id = 'ui-pack-style';
@@ -115,12 +198,7 @@
       return wrap;
     }
     function iconFor(type){
-      const map = {
-        success: 'check_circle',
-        info: 'info',
-        warn: 'warning',
-        error: 'error'
-      };
+      const map = { success: 'check_circle', info: 'info', warn: 'warning', error: 'error' };
       return map[type] || 'info';
     }
     function show(message, {type='info', timeout=2600} = {}){
@@ -132,10 +210,7 @@
         <div class="msg">${message}</div>
         <button class="close" aria-label="Dismiss"><span class="mi md">close</span></button>
       `;
-      const close = () => {
-        card.style.animation = 'ui-toast-out .18s ease forwards';
-        setTimeout(()=> card.remove(), 180);
-      };
+      const close = () => { card.style.animation = 'ui-toast-out .18s ease forwards'; setTimeout(()=> card.remove(), 180); };
       card.querySelector('.close').addEventListener('click', close);
       host.appendChild(card);
       if (timeout > 0) setTimeout(close, timeout);
@@ -143,8 +218,6 @@
     }
     return { show };
   })();
-
-  // Expose to window for app usage
   window.UIToast = Toast;
 
   // ---------- Skeleton Helper ----------
@@ -166,11 +239,9 @@
       if (!container) return;
       hide(key);
       const overlay = buildBlock();
-      // Stretch to container
       overlay.style.position = 'absolute';
       overlay.style.inset = '0';
       overlay.style.minHeight = Math.max(container.offsetHeight, 120) + 'px';
-      // Ensure container positioning
       const prevPos = getComputedStyle(container).position;
       if (prevPos === 'static') container.style.position = 'relative';
       container.appendChild(overlay);
@@ -189,12 +260,11 @@
 
   // ---------- Animated Buttons: auto-enhance ----------
   function enhanceButtonsIn(root=document){
-    // 1) Explicit targets
+    // Explicit targets
     root.querySelectorAll('[data-anim-btn]').forEach(el=>{
       if (el._uiAnimApplied) return;
       el.classList.add('ui-anim-btn','glow','ripple','primary');
       el._uiAnimApplied = true;
-      // track mouse for glow origin
       el.addEventListener('pointermove', e=>{
         const r = el.getBoundingClientRect();
         el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
@@ -206,8 +276,7 @@
         el.style.setProperty('--ry', (e.clientY - r.top)  + 'px');
       });
     });
-
-    // 2) Optionally soften existing .btn (non-primary)
+    // Soften existing .btn
     document.body.classList.add('ui-autostyle-buttons');
   }
 
@@ -222,25 +291,166 @@
   });
   mo.observe(document.documentElement, { childList:true, subtree:true });
 
-  // ---------- Convenience: auto-enhance some known buttons if present ----------
-  // Example: enhance Print(custom) if it exists later
   document.addEventListener('DOMContentLoaded', ()=>{
     const idList = ['#btn-custom-print', '#open-summaries', '#save-btn'];
-    idList.forEach(sel=>{
-      const el = document.querySelector(sel);
-      if (el) { el.setAttribute('data-anim-btn',''); }
-    });
+    idList.forEach(sel=>{ const el = document.querySelector(sel); if (el) el.setAttribute('data-anim-btn',''); });
     enhanceButtonsIn(document);
+    // Nice theme transitions
+    document.body.classList.add('ui-theme-animate');
   });
 
-  // ---------- Optional: Demo helpers (you can remove) ----------
-  // Provide simple global shortcuts for app to call:
+  // ---------- 1) Inline Loader API ----------
+  const InlineLoader = {
+    mount(target){
+      const el = (typeof target === 'string') ? document.querySelector(target) : target;
+      if (!el) return null;
+      const sp = document.createElement('span');
+      sp.className = 'ui-inline-loader';
+      el.appendChild(sp);
+      return { remove(){ sp.remove(); } };
+    }
+  };
+  window.UIInline = InlineLoader;
+
+  // ---------- 2) Top Progress Bar API ----------
+  const Topbar = (function(){
+    let bar; let active = 0; let trickleTimer;
+    function ensure(){
+      if (!bar){
+        bar = document.createElement('div'); bar.id = 'ui-topbar'; document.body.appendChild(bar);
+      }
+      return bar;
+    }
+    function start(){
+      active++; const b = ensure();
+      b.style.opacity = '1'; b.style.width = '10%';
+      clearInterval(trickleTimer);
+      trickleTimer = setInterval(()=> advance(Math.random()*8+2), 350);
+    }
+    function advance(n=5){
+      const b = ensure();
+      const cur = parseFloat(b.style.width||'0'); const next = Math.min(cur + n, 94);
+      b.style.width = next + '%';
+    }
+    function done(){
+      active = Math.max(0, active-1);
+      if (active>0) return;
+      clearInterval(trickleTimer);
+      const b = ensure(); b.style.width = '100%';
+      setTimeout(()=>{ b.style.opacity='0'; b.style.width='0%'; }, 200);
+    }
+    return { start, advance, done };
+  })();
+  window.UITopbar = Topbar;
+
+  // ---------- 3) Cards: helper (optional) ----------
+  window.UICard = {
+    apply(selector='.card'){ document.querySelectorAll(selector).forEach(c=> c.classList.add('ui-card')); }
+  };
+
+  // ---------- 4) Floating Inputs & Switches: helpers ----------
+  const Inputs = {
+    makeFloating(wrapper){
+      // Expected HTML:
+      // <div class="ui-field"><input placeholder=" " /><label>Label</label></div>
+      if (!wrapper || wrapper._uiFloating) return;
+      const inp = wrapper.querySelector('input,textarea'); const lab = wrapper.querySelector('label');
+      if (!inp || !lab) return;
+      if (!inp.hasAttribute('placeholder')) inp.setAttribute('placeholder',' ');
+      wrapper._uiFloating = true;
+    },
+    makeSwitch(el, initial=false){
+      if (!el) return;
+      el.classList.add('ui-switch');
+      el.setAttribute('role','switch');
+      el.tabIndex = 0;
+      el.dataset.on = (!!initial) + '';
+      const toggle = ()=> el.dataset.on = (el.dataset.on!=='true') + '';
+      el.addEventListener('click', toggle);
+      el.addEventListener('keydown', (e)=>{ if (e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); } });
+      return { get value(){ return el.dataset.on==='true'; }, set value(v){ el.dataset.on = (!!v)+''; } };
+    }
+  };
+  window.UIInputs = Inputs;
+
+  // ---------- 5) Tooltips: no-JS (data-tip) ----------
+  // Already CSS-based. Nothing to init.
+
+  // ---------- 6) Lightweight Modal ----------
+  const Modal = (function(){
+    let host;
+    function ensure(){
+      if (host) return host;
+      host = document.createElement('div');
+      host.className = 'ui-modal';
+      host.innerHTML = `
+        <div class="backdrop" data-ui-close></div>
+        <div class="panel">
+          <div class="head">
+            <div class="title">Info</div>
+            <button class="icon-btn" data-ui-close><span class="mi md">close</span></button>
+          </div>
+          <div class="body"></div>
+        </div>`;
+      document.body.appendChild(host);
+      host.addEventListener('click', (e)=>{ if (e.target.closest('[data-ui-close]')) close(); });
+      return host;
+    }
+    function open({ title='Info', html='' }={}){
+      const h = ensure();
+      h.querySelector('.title').textContent = title;
+      h.querySelector('.body').innerHTML = html;
+      h.classList.add('active');
+      document.documentElement.style.overflow='hidden';
+    }
+    function close(){
+      if (!host) return;
+      host.classList.remove('active');
+      document.documentElement.style.overflow='';
+    }
+    return { open, close };
+  })();
+  window.UIModal = Modal;
+
+  // ---------- 7) Tables: polish + expandable rows ----------
+  const Tables = {
+    makeExpandable(table){
+      if (!table || table._uiExp) return;
+      table._uiExp = true;
+      table.addEventListener('click', (e)=>{
+        const tr = e.target.closest('tbody tr');
+        if (!tr || tr.classList.contains('ui-row-details')) return;
+        const next = tr.nextElementSibling;
+        if (next && next.classList.contains('ui-row-details')){
+          const state = tr.getAttribute('aria-expanded')==='true';
+          tr.setAttribute('aria-expanded', !state);
+        }
+      });
+    }
+  };
+  window.UITables = Tables;
+
+  // ---------- 8) Micro animations helper ----------
+  const Anim = {
+    revealOnScroll(selector='.ui-reveal', cls='ui-slide-up'){
+      const els = Array.from(document.querySelectorAll(selector));
+      if (!els.length) return;
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(en=>{
+          if (en.isIntersecting){ en.target.classList.add(cls); io.unobserve(en.target); }
+        });
+      }, { threshold: .12 });
+      els.forEach(el=> io.observe(el));
+    }
+  };
+  window.UIAnim = Anim;
+
+  // ---------- Convenience: demo helpers ----------
   window.UIShowSaved = () => UIToast.show('تم الحفظ بنجاح ✓', {type:'success'});
   window.UIShowError = (msg='حدث خطأ غير متوقع') => UIToast.show(msg, {type:'error', timeout: 4200});
 
-  // Example skeleton usage (call from existing flows when loading):
-  //   const host = document.querySelector('#patients-table') || document.querySelector('#content');
-  //   UISkeleton.show(host, 'patients');
-  //   ... load ...
-  //   UISkeleton.hide('patients');
+  // Optional quick-autos: enable reveal on elements marked
+  document.addEventListener('DOMContentLoaded', ()=> {
+    UIAnim.revealOnScroll('[data-reveal]');
+  });
 })();
