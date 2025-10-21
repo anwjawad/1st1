@@ -195,24 +195,30 @@ function getFilteredPatients(){
   return State.patients.filter(p=>inSec(p)&&txt(p)&&st(p));
 }
 function renderPatientsListClassic(){
-  const list=q('#patients-list'); if(!list) return; list.innerHTML='';
-  const items=getFilteredPatients();
+  const list = q('#patients-list'); if(!list) return;
+  list.innerHTML = '';
+
+  const items = getFilteredPatients();
   if (!items.length){
-    const d=document.createElement('div'); d.className='empty small'; d.style.padding='16px'; d.textContent='No patients in this view.'; list.appendChild(d);
+    const d = document.createElement('div');
+    d.className = 'empty small';
+    d.style.padding = '16px';
+    d.textContent = 'No patients in this view.';
+    list.appendChild(d);
     return;
   }
-  
-  items.forEach(p=>{
+
+  items.forEach(p => {
     const labsRec = Labs.getForPatient(p['Patient Code'], State.labs);
     const labsAbn = p['Labs Abnormal'] || abnormalSummary(labsRec);
     const symPrev = symptomsPreview(p);
 
-    const row=document.createElement('div'); row.className='row patient-card'; row.dataset.code=p['Patient Code']||'';
-    const left=document.createElement('div');
+    const row  = document.createElement('div'); row.className = 'row patient-card'; row.dataset.code = p['Patient Code'] || '';
+    const left = document.createElement('div');
 
     // Header: checkbox + name + status
-    const header=document.createElement('div'); header.className='row-header';
-    const headLeft=document.createElement('div'); headLeft.style.display='flex'; headLeft.style.alignItems='center'; headLeft.style.gap='8px';
+    const header   = document.createElement('div'); header.className = 'row-header';
+    const headLeft = document.createElement('div'); headLeft.style.display='flex'; headLeft.style.alignItems='center'; headLeft.style.gap='8px';
 
     const cb = document.createElement('input');
     cb.type = 'checkbox';
@@ -223,8 +229,73 @@ function renderPatientsListClassic(){
       else State.sel.delete(p['Patient Code']);
       updateBulkBarState();
     });
+
+    const name = document.createElement('div');
+    name.className = 'row-title linkish';
+    name.textContent = p['Patient Name'] || '(Unnamed)';
+    headLeft.appendChild(cb); headLeft.appendChild(name);
+
+    const badge = document.createElement('span');
+    badge.className = 'status ' + (p['Done'] ? 'done' : 'open');
+    badge.textContent = p['Done'] ? 'Done' : 'Open';
+
+    header.appendChild(headLeft); header.appendChild(badge);
+
+    const meta = document.createElement('div'); meta.className = 'row-sub';
+    const dx = p['Diagnosis'] ? `• ${p['Diagnosis']}` : '';
+    meta.textContent = `${p['Patient Age'] || '—'} yrs • Room ${p['Room'] || '—'} ${dx}`;
+
+    const tags = document.createElement('div'); tags.className = 'row-tags';
+    const sectionPill = document.createElement('span'); sectionPill.className = 'row-tag'; sectionPill.textContent = p['Section'] || 'Default'; tags.appendChild(sectionPill);
+    if (labsAbn){ const chip = document.createElement('span'); chip.className = 'row-chip abn'; chip.textContent = labsAbn; tags.appendChild(chip); }
+    if (symPrev){ const chip = document.createElement('span'); chip.className = 'row-chip sym'; chip.textContent = symPrev; tags.appendChild(chip); }
+
+    left.appendChild(header); left.appendChild(meta); left.appendChild(tags);
+
+    // === Mini calculator chips inside each patient card (ECOG / PPI / PPS) ===
+    const mini = document.createElement('div');
+    mini.className = 'mini-actions';
+    function makeChip(label, type) {
+      const b = document.createElement('button');
+      b.className = 'btn-chip';
+      b.dataset.calc = type;
+      b.dataset.code = p['Patient Code'] || '';
+      b.textContent = label;
+      return b;
+    }
+    mini.appendChild(makeChip('ECOG', 'ecog'));
+    mini.appendChild(makeChip('PPI',  'ppi'));
+    mini.appendChild(makeChip('PPS',  'pps'));
+    left.appendChild(mini);
+    // === /mini chips ===
+
+    // right side (code)
+    const right = document.createElement('div');
+    right.innerHTML = `<span class="mono muted">${p['Patient Code'] || ''}</span>`;
+
+    // assemble row
+    row.appendChild(left);
+    row.appendChild(right);
+
+    // open dashboard on name click
+    name.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Patients.setActiveByCode?.(p['Patient Code']);
+      openDashboardFor(p['Patient Code'], true);
+    });
+
+    // append to list
+    list.appendChild(row);
+  }); // ← إغلاق forEach
+
+  // تحديث شريط العمليات
+  updateBulkBarState();
+} // ← إغلاق دالة الكلاسيك بالكامل
+
+
+// ========= Dispatcher: يختار نمط العرض من الإعدادات =========
 function renderPatientsList(){
-  const list = q('#patients-list'); 
+  const list = q('#patients-list');
   if (!list) return;
 
   const items = getFilteredPatients();
@@ -249,22 +320,7 @@ function renderPatientsList(){
 
   try { updateBulkBarState?.(); } catch {}
 }
-    const name=document.createElement('div'); name.className='row-title linkish'; name.textContent=p['Patient Name']||'(Unnamed)';
-    headLeft.appendChild(cb); headLeft.appendChild(name);
-
-    const badge=document.createElement('span'); badge.className = 'status ' + (p['Done']?'done':'open'); badge.textContent=p['Done']?'Done':'Open';
-    header.appendChild(headLeft); header.appendChild(badge);
-
-    const meta=document.createElement('div'); meta.className='row-sub';
-    const dx=p['Diagnosis']?`• ${p['Diagnosis']}`:''; meta.textContent=`${p['Patient Age']||'—'} yrs • Room ${p['Room']||'—'} ${dx}`;
-
-    const tags=document.createElement('div'); tags.className='row-tags';
-    const sectionPill=document.createElement('span'); sectionPill.className='row-tag'; sectionPill.textContent=p['Section']||'Default'; tags.appendChild(sectionPill);
-    if (labsAbn){ const chip=document.createElement('span'); chip.className='row-chip abn'; chip.textContent=labsAbn; tags.appendChild(chip); }
-    if (symPrev){ const chip=document.createElement('span'); chip.className='row-chip sym'; chip.textContent=symPrev; tags.appendChild(chip); }
-
-    left.appendChild(header); left.appendChild(meta); left.appendChild(tags);
-
+    
     // === Mini calculator chips inside each patient card (ECOG / PPI / PPS) ===
     const mini = document.createElement('div');
     mini.className = 'mini-actions';
