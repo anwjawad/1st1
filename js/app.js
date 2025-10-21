@@ -17,6 +17,7 @@ import { AIModule } from './ai.js';
 import { Symptoms } from './symptoms.js';
 import { Summaries } from './summaries.js';
 import { Calculators } from './calculators.js';
+import { PatientViews } from './patient-views.js';
 
 // ===== Defaults on first run =====
 const DEFAULTS = {
@@ -193,13 +194,43 @@ function getFilteredPatients(){
   const st =p=> f==='all'?true : (f==='done'? !!p['Done'] : !p['Done']);
   return State.patients.filter(p=>inSec(p)&&txt(p)&&st(p));
 }
-function renderPatientsList(){
+function renderPatientsListClassic(){
   const list=q('#patients-list'); if(!list) return; list.innerHTML='';
   const items=getFilteredPatients();
   if (!items.length){
     const d=document.createElement('div'); d.className='empty small'; d.style.padding='16px'; d.textContent='No patients in this view.'; list.appendChild(d);
     return;
   }
+  function renderPatientsList(){
+  const list = q('#patients-list'); 
+  if (!list) return;
+
+  const items = getFilteredPatients();        // موجودة عندك
+  const mode  = (getPreferences().patientListView || 'classic').toLowerCase();
+
+  // النمط الكلاسيكي = نفس السلوك الحالي
+  if (mode === 'classic') {
+    return renderPatientsListClassic();
+  }
+
+  // الأنماط الحديثة من patient-views.js
+  PatientViews.renderList({
+    root: list,
+    items,
+    state: State,
+    openDashboardFor: (code, asModal = true) => openDashboardFor(code, asModal),
+    abnormalSummary, // الدالة الموجودة عندك لملخّص المختبرات الشاذة
+    onOpenCalc: (type) => {
+      if (type === 'ecog') Calculators.openECOG();
+      if (type === 'ppi')  Calculators.openPPI();
+      if (type === 'pps')  Calculators.openPPS();
+    }
+  }, mode);
+
+  // إبقاء حالة شريط Bulk actions متّسقة (حتى لو ما في checkboxes في العروض الجديدة)
+  try { updateBulkBarState?.(); } catch {}
+}
+
   items.forEach(p=>{
     const labsRec = Labs.getForPatient(p['Patient Code'], State.labs);
     const labsAbn = p['Labs Abnormal'] || abnormalSummary(labsRec);
