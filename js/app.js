@@ -201,36 +201,7 @@ function renderPatientsListClassic(){
     const d=document.createElement('div'); d.className='empty small'; d.style.padding='16px'; d.textContent='No patients in this view.'; list.appendChild(d);
     return;
   }
-  function renderPatientsList(){
-  const list = q('#patients-list'); 
-  if (!list) return;
-
-  const items = getFilteredPatients();        // موجودة عندك
-  const mode  = (getPreferences().patientListView || 'classic').toLowerCase();
-
-  // النمط الكلاسيكي = نفس السلوك الحالي
-  if (mode === 'classic') {
-    return renderPatientsListClassic();
-  }
-
-  // الأنماط الحديثة من patient-views.js
-  PatientViews.renderList({
-    root: list,
-    items,
-    state: State,
-    openDashboardFor: (code, asModal = true) => openDashboardFor(code, asModal),
-    abnormalSummary, // الدالة الموجودة عندك لملخّص المختبرات الشاذة
-    onOpenCalc: (type) => {
-      if (type === 'ecog') Calculators.openECOG();
-      if (type === 'ppi')  Calculators.openPPI();
-      if (type === 'pps')  Calculators.openPPS();
-    }
-  }, mode);
-
-  // إبقاء حالة شريط Bulk actions متّسقة (حتى لو ما في checkboxes في العروض الجديدة)
-  try { updateBulkBarState?.(); } catch {}
-}
-
+  
   items.forEach(p=>{
     const labsRec = Labs.getForPatient(p['Patient Code'], State.labs);
     const labsAbn = p['Labs Abnormal'] || abnormalSummary(labsRec);
@@ -252,7 +223,32 @@ function renderPatientsListClassic(){
       else State.sel.delete(p['Patient Code']);
       updateBulkBarState();
     });
+function renderPatientsList(){
+  const list = q('#patients-list'); 
+  if (!list) return;
 
+  const items = getFilteredPatients();
+  const mode  = (getPreferences().patientListView || 'classic').toLowerCase();
+
+  if (mode === 'classic') {
+    return renderPatientsListClassic();
+  }
+
+  PatientViews.renderList({
+    root: list,
+    items,
+    state: State,
+    openDashboardFor: (code, asModal = true) => openDashboardFor(code, asModal),
+    abnormalSummary,
+    onOpenCalc: (type) => {
+      if (type === 'ecog') Calculators.openECOG();
+      if (type === 'ppi')  Calculators.openPPI();
+      if (type === 'pps')  Calculators.openPPS();
+    }
+  }, mode);
+
+  try { updateBulkBarState?.(); } catch {}
+}
     const name=document.createElement('div'); name.className='row-title linkish'; name.textContent=p['Patient Name']||'(Unnamed)';
     headLeft.appendChild(cb); headLeft.appendChild(name);
 
