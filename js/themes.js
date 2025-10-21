@@ -7,11 +7,13 @@ const ThemeManager = (() => {
 
   // === Preferences storage ===
   const SETTINGS_KEY = 'pr.settings';
-  const DEFAULT_SETTINGS = Object.freeze({
-    cardDensity: 'expanded',        // 'compact' | 'expanded'
-    sectionOrder: [],               // will be filled from DOM pills when empty
-    modalColor: 'auto',             // 'auto' | 'neon' | 'ocean' | 'rose'
-  });
+const DEFAULT_SETTINGS = Object.freeze({
+  cardDensity: 'expanded',
+  sectionOrder: [],
+  modalColor: 'auto',
+  // NEW:
+  patientListView: 'classic' // 'classic' | 'expandable' | 'carousel' | 'kanban' | 'summary' | 'timeline'
+});
 
   function readJSON(key, fallback) {
     try {
@@ -31,6 +33,8 @@ const ThemeManager = (() => {
     if (!['compact','expanded'].includes(s.cardDensity)) s.cardDensity = 'expanded';
     if (!['auto','neon','ocean','rose'].includes(s.modalColor)) s.modalColor = 'auto';
     if (!Array.isArray(s.sectionOrder)) s.sectionOrder = [];
+    const ALLOWED_VIEWS = ['classic','expandable','carousel','kanban','summary','timeline'];
+  if (!ALLOWED_VIEWS.includes(s.patientListView)) s.patientListView = 'classic';
     return s;
   }
   function saveSettings(s) {
