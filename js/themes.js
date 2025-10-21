@@ -246,6 +246,8 @@ const DEFAULT_SETTINGS = Object.freeze({
       // init inputs
       wrap.querySelector('#pref-density').value = s.cardDensity;
       wrap.querySelector('#pref-modal-color').value = s.modalColor;
+      const selView = wrap.querySelector('#pref-list-view');
+if (selView) selView.value = s.patientListView || 'classic';
 
       // move handlers
       wrap.addEventListener('click', (e) => {
@@ -266,9 +268,16 @@ const DEFAULT_SETTINGS = Object.freeze({
         const density = wrap.querySelector('#pref-density').value;
         const modalColor = wrap.querySelector('#pref-modal-color').value;
         const order = Array.from(wrap.querySelectorAll('#pref-sections .row')).map(r => r.getAttribute('data-key'));
+  const patientListView = (wrap.querySelector('#pref-list-view')?.value || 'classic');
+  const next = {
+    cardDensity: density,
+    modalColor,
+    sectionOrder: order,
+    // NEW:
+    patientListView
+  };
+  saveSettings(next);
 
-        const next = { cardDensity: density, modalColor, sectionOrder: order };
-        saveSettings(next);
 
         // Apply immediate UX hints we can handle here:
         document.body.setAttribute('data-density', density);
